@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Simulation de Téléchargement
+  </title>
+  <style>
+   /* Style Général */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f3f4;
+            color: #3c4043;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Formulaire de Configuration */
+        #setup-form label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        #setup-form input, #setup-form select, #setup-form button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        #start-simulation {
+            background-color: #1a73e8;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        #start-simulation:hover {
+            background-color: #1764cc;
+        }
+
+        .hint {
+            font-size: 0.8em;
+            color: #ea4335;
+            margin-top: -5px;
+            margin-bottom: 15px;
+        }
+
+        /* Interface de Téléchargement (Chrome-like) */
+        .download-ui {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .download-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #1a73e8;
+        }
+
+        .download-info {
+            flex-grow: 1;
+        }
+
+        .file-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: #5f6368;
+            margin-bottom: 4px;
+        }
+
+        .download-name {
+            font-weight: bold;
+            color: #3c4043;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%; 
+        }
+        
+        #download-progress-size {
+             display: none; 
+        }
+
+        .progress-container {
+            background-color: #e8eaed;
+            height: 5px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #1a73e8;
+            transition: width 0.3s linear;
+        }
+
+        .status-details {
+            font-size: 0.8em;
+            color: #70757a;
+            display: flex; 
+            align-items: center;
+            justify-content: flex-start; 
+        }
+
+        #speed-display {
+            display: none;
+        }
+        
+        /* -- MODIFICATION CRITIQUE POUR LA TAILLE DU TEXTE CI-DESSOUS -- */
+        #status-right {
+             font-weight: bold;
+             color: #1a73e8;
+             font-size: 0.8em; /* TAILLE ULTRA-COMPACTE (LIGNE 147 dans le code) */
+        }
+
+        .dot {
+            display: none;
+        }
+
+        .download-actions {
+            margin-left: 15px;
+        }
+
+        .cancel-btn {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            color: #70757a;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Message de Fin */
+        .finished-message {
+            padding: 15px;
+            background-color: #e6f4ea;
+            color: #1e8e3e;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        #reset-simulation {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    .credit { position: fixed; bottom: 10px; right: 10px; font-size: 12px; color: #666; z-index: 1000; }
+  </style>
+ </head>
+ <body>
+  <div class="container">
+   <h1>
+    Simulateur de Téléchargement 💾
+   </h1>
+   <p>
+    <em>
+     Rien ne sera réellement téléchargé ou installé. Ceci est une simple simulation.
+    </em>
+   </p>
+   <div id="setup-form">
+    <label for="file-type">
+     1. Type de fichier :
+    </label>
+    <select id="file-type">
+     <option value=".pdf">
+      Document (.pdf)
+     </option>
+     <option value=".exe">
+      Application (.exe)
+     </option>
+     <option value=".jpg">
+      Image (.jpg)
+     </option>
+     <option value=".png">
+      Image (.png)
+     </option>
+     <option value=".gif">
+      Image Animée (.gif)
+     </option>
+     <option value=".mp3">
+      Audio (.mp3)
+     </option>
+     <option value=".mp4">
+      Vidéo (.mp4)
+     </option>
+     <option value=".avi">
+      Vidéo (.avi)
+     </option>
+     <option value=".zip">
+      Archive (.zip)
+     </option>
+     <option value=".rar">
+      Archive (.rar)
+     </option>
+     <option value=".iso">
+      Image Disque (.iso)
+     </option>
+     <option value=".doc">
+      Document Word (.doc)
+     </option>
+    </select>
+    <label for="file-size">
+     2. Taille du fichier (ex: 5 Mo, 1 Go) :
+    </label>
+    <input id="file-size" placeholder="Ex: 500 Mo" required="" type="text"/>
+    <label for="file-name">
+     3. Nom du fichier (Optionnel) :
+    </label>
+    <input id="file-name" placeholder="MonFichier" type="text"/>
+    <label for="speed">
+     4. Vitesse internet (ex: 50 Mo/s, 400 Ko/s) :
+    </label>
+    <input id="speed" placeholder="Ex: 5 Mo/s" required="" type="text"/>
+    <p class="hint">
+     ⚠️ **TRÈS IMPORTANT** : Utilisez Ko/s, Mo/s ou Go/s. Vous pouvez utiliser la virgule ou le point (ex: 3,7 Mo ou 3.7 Mo).
+    </p>
+    <button id="start-simulation">
+     Démarrer la Simulation
+    </button>
+   </div>
+   <div class="download-ui" id="download-ui" style="display: none;">
+    <div class="download-icon">
+     ↓
+    </div>
+    <div class="download-info">
+     <div class="file-details">
+      <span class="download-name">
+      </span>
+      <span class="download-progress-size" id="download-progress-size">
+      </span>
+     </div>
+     <div class="progress-container">
+      <div class="progress-bar" id="progress-bar">
+      </div>
+     </div>
+     <div class="status-details">
+      <span id="speed-display">
+       0 Mo/s
+      </span>
+      <span id="status-right">
+       Calcul...
+      </span>
+     </div>
+    </div>
+    <div class="download-actions">
+     <button class="cancel-btn" id="cancel-download">
+      ✕
+     </button>
+    </div>
+   </div>
+   <div class="finished-message" id="finished-message" style="display: none;">
+    ✅ **Téléchargement terminé !** Le fichier
+    <span id="final-filename">
+    </span>
+    est prêt.
+    <button id="reset-simulation">
+     Recommencer
+    </button>
+   </div>
+  </div>
+  <script>
+   document.addEventListener('DOMContentLoaded', () => {
+            // Éléments du DOM
+            const setupForm = document.getElementById('setup-form');
+            const startButton = document.getElementById('start-simulation');
+            const downloadUI = document.getElementById('download-ui');
+            const progressBar = document.getElementById('progress-bar');
+            const speedDisplay = document.getElementById('speed-display'); 
+            const statusRightSpan = document.getElementById('status-right');
+            const downloadNameSpan = downloadUI.querySelector('.download-name');
+            const finishedMessage = document.getElementById('finished-message');
+            const finalFilenameSpan = document.getElementById('final-filename');
+            const cancelButton = document.getElementById('cancel-download');
+            const resetButton = document.getElementById('reset-simulation');
+            
+            // Variables de simulation
+            let totalBytes = 0;
+            let downloadSpeedBps = 0;
+            let startTime;
+            let intervalId;
+            let isDownloading = false;
+
+            // --- Fonctions utilitaires pour les conversions ---
+
+            /** Convertit une chaîne de taille (ex: "5 Mo") en Octets, gère ',' et '.'. */
+            function sizeToBytes(sizeStr) {
+                const cleanStr = sizeStr.trim().toUpperCase().replace(/,/g, '.').replace(/\s/g, '');
+                const parts = cleanStr.match(/^(\d+(\.\d+)?)\s*(O|KO|MO|GO)$/);
+                if (!parts) return 0;
+                
+                const value = parseFloat(parts[1]);
+                const unit = parts[3];
+
+                switch (unit) {
+                    case 'O': return value;
+                    case 'KO': return value * 1024;
+                    case 'MO': return value * 1024 * 1024;
+                    case 'GO': return value * 1024 * 1024 * 1024;
+                    default: return 0;
+                }
+            }
+
+            /** Convertit une chaîne de vitesse (ex: "5 Mo/s") en Octets par seconde (Bps), gère ',' et '.'. */
+            function speedToBps(speedStr) {
+                const cleanStr = speedStr.trim().toUpperCase().replace(/,/g, '.').replace(/\s/g, '');
+                const parts = cleanStr.match(/^(\d+(\.\d+)?)\s*(O|KO|MO|GO)\/S$/);
+                if (!parts) return 0;
+
+                const value = parseFloat(parts[1]);
+                const unit = parts[3];
+
+                switch (unit) {
+                    case 'O': return value;
+                    case 'KO': return value * 1024;
+                    case 'MO': return value * 1024 * 1024;
+                    case 'GO': return value * 1024 * 1024 * 1024;
+                    default: return 0;
+                }
+            }
+
+            /** Formate les octets en Ko/Mo/Go pour l'affichage. */
+            function formatBytes(bytes) {
+                if (bytes === 0) return '0 Octet';
+                const k = 1024;
+                const units = ['Octets', 'Ko', 'Mo', 'Go', 'To'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + units[i];
+            }
+
+            /** Formate le temps en minutes:secondes. */
+            function formatTime(seconds) {
+                if (seconds < 0 || isNaN(seconds)) return 'Calcul...';
+                const min = Math.floor(seconds / 60);
+                const sec = Math.floor(seconds % 60);
+                return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+            }
+
+            // --- Logique de Simulation ---
+
+            function startSimulation() {
+                if (isDownloading) return;
+
+                const fileSizeStr = document.getElementById('file-size').value;
+                const speedStr = document.getElementById('speed').value;
+                let fileName = document.getElementById('file-name').value;
+                const fileType = document.getElementById('file-type').value;
+
+                totalBytes = sizeToBytes(fileSizeStr);
+                downloadSpeedBps = speedToBps(speedStr);
+
+                if (totalBytes <= 0 || downloadSpeedBps <= 0) {
+                    alert("Erreur: Veuillez entrer une taille de fichier et une vitesse internet valides (ex: 500 Mo et 5 Mo/s). Vérifiez le format Ko/Mo/Go et assurez-vous que les valeurs sont supérieures à zéro.");
+                    return;
+                }
+
+                if (!fileName) {
+                    fileName = 'FichierSimulé';
+                }
+                fileName += fileType;
+
+                // Configuration de l'interface
+                downloadNameSpan.textContent = fileName;
+                
+                // Calcul initial du temps total
+                const timeTotalS = totalBytes / downloadSpeedBps;
+                const initialStatus = `${formatTime(timeTotalS)} restant (0 Ko / ${formatBytes(totalBytes)})`;
+                
+                statusRightSpan.textContent = initialStatus;
+                speedDisplay.textContent = formatBytes(downloadSpeedBps) + '/s'; 
+                
+                progressBar.style.width = '0%';
+                
+                setupForm.style.display = 'none';
+                finishedMessage.style.display = 'none';
+                downloadUI.style.display = 'flex';
+                
+                isDownloading = true;
+                startTime = Date.now();
+                
+                intervalId = setInterval(updateSimulation, 300);
+            }
+
+            function updateSimulation() {
+                const currentTime = Date.now();
+                const elapsedTimeMs = currentTime - startTime;
+                const elapsedTimeS = elapsedTimeMs / 1000;
+
+                let downloadedBytes = downloadSpeedBps * elapsedTimeS;
+                
+                if (downloadedBytes >= totalBytes) {
+                    downloadedBytes = totalBytes;
+                    clearInterval(intervalId);
+                    finishSimulation(downloadNameSpan.textContent);
+                    return;
+                }
+
+                const percentage = (downloadedBytes / totalBytes) * 100;
+                
+                // Calcul du temps restant
+                const remainingBytes = totalBytes - downloadedBytes;
+                const timeRemainingS = remainingBytes / downloadSpeedBps;
+                
+                // Mise à jour de la barre de progression
+                progressBar.style.width = percentage.toFixed(2) + '%';
+                
+                // Construction du statut complet (Temps Restant + Taille téléchargée)
+                const remainingTimeFormatted = formatTime(timeRemainingS);
+                const downloadedSizeFormatted = formatBytes(downloadedBytes);
+                const totalSizeFormatted = formatBytes(totalBytes);
+                
+                // Affiche uniquement les informations de progression et de temps
+                statusRightSpan.textContent = `${remainingTimeFormatted} restant (${downloadedSizeFormatted} / ${totalSizeFormatted})`;
+            }
+
+            function finishSimulation(fileName) {
+                isDownloading = false;
+                clearInterval(intervalId);
+                progressBar.style.width = '100%';
+                // Afficher la taille totale et le statut terminé
+                statusRightSpan.textContent = `${formatBytes(totalBytes)} terminé`;
+                
+                downloadUI.style.display = 'none';
+                finalFilenameSpan.textContent = fileName;
+                finishedMessage.style.display = 'block';
+            }
+
+            function cancelSimulation() {
+                if (!isDownloading) return;
+                
+                clearInterval(intervalId);
+                isDownloading = false;
+                alert(`Téléchargement de "${downloadNameSpan.textContent}" annulé.`);
+                resetUI();
+            }
+
+            function resetUI() {
+                clearInterval(intervalId);
+                isDownloading = false;
+                downloadUI.style.display = 'none';
+                finishedMessage.style.display = 'none';
+                setupForm.style.display = 'block';
+                document.getElementById('file-size').value = '';
+                document.getElementById('speed').value = '';
+                document.getElementById('file-name').value = '';
+            }
+
+
+            // --- Écouteurs d'événements ---
+            startButton.addEventListener('click', startSimulation);
+            cancelButton.addEventListener('click', cancelSimulation);
+            resetButton.addEventListener('click', resetUI);
+        });
+  </script>
+  <a class="credit">
+   Crédit HTML : Foufy_2.0
+   <a>
+   </a>
+  </a>
+ </body>
+</html>
